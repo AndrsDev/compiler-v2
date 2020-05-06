@@ -38,7 +38,7 @@ public class AnalizadorLexico {
         return true;
     }
 
-    public Token explorar() throws IOException {
+    public Token escanear() throws IOException {
         while(true){
             readch();
             if(preanalisis == ' ' || preanalisis == '\t') continue;
