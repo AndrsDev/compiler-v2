@@ -25,7 +25,6 @@ public class AnalizadorLexico {
         reservar( Tipo.Char );
         reservar( Tipo.Bool );
         reservar( Tipo.Float );
-
     }
 
     void readch() throws IOException {
