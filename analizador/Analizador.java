@@ -75,4 +75,219 @@ public class Analizador {
         return new Arreglo(((Num)tok).valor, p);
     }
 
+    Instr instrs() throws IOException {
+        if(busca.etiqueta == '}') return Instr.Null;
+        else return new Sec(instr(), instrs());
+    }
+
+    Instr instr() throws IOException {
+        Expr x;
+        Instr s, s1, s2, instrGuardada;
+
+        switch (busca.etiqueta) {
+            case ';':
+                mover();
+                return Instr.Null;
+            case Etiqueta.IF:
+                coincidir(Etiqueta.IF);
+                coincidir('(');
+                x = bool();
+                coincidir(')');
+                if(busca.etiqueta != Etiqueta.ELSE) return new If(x, s1);
+                coincidir(Etiqueta.ELSE);
+                s2 = instr();
+                return new Else(x, s1, s2);
+            case Etiqueta.WHILE:
+                While nodowWhile = new While();
+                instrGuardada = Instr.Circundante;
+                Instr.Circundante = nodowWhile;
+                coincidir(Etiqueta.WHILE);
+                coincidir('(');
+                x = bool();
+                coincidir(')');
+                s1 = instr();
+                nodowWhile.inic(x, s1);
+                Instr.Circundante = instrGuardada;
+                return nodowWhile;
+            case Etiqueta.DO:
+                Do nododo = new Do();
+                instrGuardada = Instr.Circundante;
+                Instr.Circundante = nododo;
+                coincidir(Etiqueta.DO);
+                s1 = instr();
+                coincidir(Etiqueta.WHILE);
+                coincidir('(');
+                x = bool();
+                coincidir(')');
+                coincidir(';');
+                nododo.inic(s1, x);
+                Instr.Circundante = instrGuardada;
+                return nododo;
+            case Etiqueta.BREAK:
+                coincidir(Etiqueta.BREAK);
+                coincidir(';');
+                return new Break();
+            case '{':
+                return bloque();
+            default:
+                return asignar();
+        }
+    }
+
+    Instr asignar() throws IOException {
+        Instr instr;
+        Token t = busca;
+        coincidir(Etiqueta.ID);
+        Id id = sup.get(t);
+        if(busca.etiqueta == '=') {
+            mover();
+            instr = new Est(id, bool());
+        } else {
+            Acceso x = desplazamiento(id);
+            coincidir('='); 
+            instr = new EstElem(x, bool());
+        }
+
+        coincidir(';');
+        return instr;
+    }
+
+    Expr bool() throws IOException {
+        Expr x = unir();
+        while(busca.etiqueta == Etiqueta.OR) {
+            Token tok = busca;
+            mover();
+            x = new Or(tok, x, unir());
+        }
+        return x;
+    }
+
+    Expr unir() throws IOException {
+        Expr x = igualdad();
+        while(busca.etiqueta == Etiqueta.AND) {
+            Token tok = busca;
+            mover();
+            x = new And(tok, x, igualdad());
+        }
+        return x;
+    }
+
+    Expr igualdad() throws IOException {
+        Expr x = rel();
+        while(busca.etiqueta == Etiqueta.EQ || busca.etiqueta == Etiqueta.NE) {
+            Token tok = busca;
+            mover();
+            x = new Rel(tok, x, rel());
+        }
+        return x;
+    }
+
+    Expr rel() throws IOException {
+        Expr x = expr();
+        switch (busca.etiqueta) {
+            case '<': 
+            case Etiqueta.LE:
+            case Etiqueta.GE:
+            case '>':
+                Token tok = busca;
+                mover();
+                return new Rel(tok, x, expr());
+            default:
+                return x;
+        }
+    }
+
+    Expr expr() throws IOException {
+        Expr x = term();
+        while(busca.etiqueta == '+' || busca.etiqueta == '-') {
+            Token tok = busca;
+            mover();
+            x = new Arit(tok, x, term());
+        }
+        return x;
+    }
+
+    Expr term() throws IOException {
+        Expr x = unario();
+        while(busca.etiqueta == '*' || busca.etiqueta == '/') {
+            Token tok = busca;
+            mover();
+            x = new Arit(tok, x, unario());
+        }
+        return x;
+    }
+
+    Expr unario() throws IOException {
+        if(busca.etiqueta == '-') {
+            mover();
+            return new Unario(Palabra.minus, unario());
+        } 
+        else if(busca.etiqueta == '!') {
+            Token tok = busca;
+            mover();
+            return new Not(tok, unario());
+        }
+        else
+            return factor();
+    }
+
+    Expr factor() throws IOException {
+        Expr x = null;
+        switch(busca.etiqueta) {
+            case '(':
+                mover();
+                x = bool();
+                coincidir(')');
+                return x;
+            case Etiqueta.NUM:
+                x = new Constante(busca, Tipo.Int);
+                mover();
+                return x;
+            case Etiqueta.REAL:
+                x = new Constante(busca, Tipo.Float);
+                mover();
+                return x;
+            case Etiqueta.TRUE:
+                x = Constante.True;
+                mover();
+                return x;
+            case Etiqueta.FALSE:
+                x = Constante.False;
+                mover();
+            case Etiqueta.ID:
+                String s = busca.toString();
+                Id id = sup.get(busca);
+                if(id == null) error(busca.toString() + " no declarado");
+                mover();
+                if(busca.etiqueta != '[') return id;
+                else return desplazamiento(id);
+            default:
+                error("error de sintaxis");
+                return x;
+        }
+    }
+
+    Acceso desplazamiento(Id a) throws IOException {
+        Expr i, w, t1, t2, ubic;
+        Tipo tipo = a.tipo;
+        coincidir('[');
+        i = bool();
+        coincidir(']');
+        tipo = ((Arreglo)tipo).de;
+        w = new Constante(tipo.anchura);
+        t1 = new Arit(new Token('*'), i , w);
+        ubic = t1;
+        while(busca.etiqueta == '[') {
+            coincidir('[');
+            i = bool();
+            coincidir('[');
+            tipo = ((Arreglo)tipo).de;
+            w = new Constante(tipo.anchura);
+            t1 = new Arit(new Token('*'), i , w);
+            t2 = new Arit(new Token('+'), ubic, t1);
+            ubic = t2;
+        }
+        return new Acceso(a, ubic, tipo);
+    }
+
 }

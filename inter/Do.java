@@ -7,9 +7,9 @@ public class Do extends Instr {
     Expr expr; Instr instr;
     public Do() { expr = null; instr = null; }
 
-    public void inic(Expr x, Instr s) {
-        expr = x; 
+    public void inic(Instr s, Expr x) {
         instr = s;
+        expr = x; 
 
         if(expr.tipo != Tipo.Bool)
             expr.error("se requiere booleano en do");

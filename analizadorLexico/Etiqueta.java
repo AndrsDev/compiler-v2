@@ -1,7 +1,7 @@
 package analizadorLexico;
 
 public class Etiqueta {
-    public static int 
+    public static final int 
         AND = 256,
         BASIC = 257,
         BREAK = 258,
