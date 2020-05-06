@@ -1,6 +1,5 @@
 package inter;
 import analizadorLexico.*;
-import simbolos.*;
 
 public class Not extends Logica {
     public Not(Token tok, Expr x2) {

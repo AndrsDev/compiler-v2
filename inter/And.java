@@ -1,6 +1,5 @@
 package inter;
 import analizadorLexico.*;
-import simbolos.*;
 
 public class And extends Logica {
 
