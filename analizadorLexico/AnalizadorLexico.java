@@ -39,10 +39,10 @@ public class AnalizadorLexico {
     }
 
     public Token escanear() throws IOException {
-        while(true){
-            readch();
+       
+        for( ; ; readch() ){
             if(preanalisis == ' ' || preanalisis == '\t') continue;
-            else if(preanalisis == '\n') linea++;
+            else if(preanalisis == '\n') linea = linea + 1;
             else break;
         }
 
@@ -74,12 +74,14 @@ public class AnalizadorLexico {
             //Returns a Real Token if it is not a NUM Token.
             float x = v;
             float d = 10;
-            while(true) {
+
+            for( ; ; ) {
                 readch();
                 if(!Character.isDigit(preanalisis)) break;
                 x = x + Character.digit(preanalisis, 10) / d;
-                d *= 10;
+                d = d*10;
             }
+
             return new Real(x);
         }
 

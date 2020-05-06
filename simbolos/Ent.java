@@ -5,11 +5,11 @@ import analizadorLexico.*;
 import inter.*;
 
 public class Ent {
-    private Hashtable tabla;
+    private Hashtable<Token, Id>  tabla;
     protected Ent ant;
 
     public Ent(Ent n) {
-        tabla = new Hashtable();
+        tabla = new Hashtable<Token, Id>();
         ant = n;
     }
 

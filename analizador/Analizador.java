@@ -21,7 +21,7 @@ public class Analizador {
     }
 
     void error(String s) {
-        throw new Error("cerca de linea " + lex.linea + ": " + s);
+        throw new Error("cerca de linea " + AnalizadorLexico.linea + ": " + s);
     }
 
     void coincidir(int t) throws IOException {
@@ -31,7 +31,7 @@ public class Analizador {
 
     public void programa() throws IOException {
         Instr s = bloque();
-        int inicio = s.nuevaEtiqueta() ; int despues = s.nuevaEtiqueta(); 
+        int inicio = s.nuevaEtiqueta(); int despues = s.nuevaEtiqueta(); 
         s.emitirEtiqueta(inicio); s.gen(inicio, despues); s.emitirEtiqueta(despues);
     }
 
@@ -82,7 +82,8 @@ public class Analizador {
 
     Instr instr() throws IOException {
         Expr x;
-        Instr s, s1, s2, instrGuardada;
+        Instr s1 = null, s2 = null;
+        Instr instrGuardada;
 
         switch (busca.etiqueta) {
             case ';':
@@ -255,7 +256,6 @@ public class Analizador {
                 x = Constante.False;
                 mover();
             case Etiqueta.ID:
-                String s = busca.toString();
                 Id id = sup.get(busca);
                 if(id == null) error(busca.toString() + " no declarado");
                 mover();
