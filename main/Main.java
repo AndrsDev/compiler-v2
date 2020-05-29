@@ -11,18 +11,17 @@ import analizador.* ;
 
 public class Main {
     public static void main(String[] args) throws IOException { 
-
         cleanFile("./main/destino.txt");
         cleanFile("./main/intermedio.txt");
 
-        System.out.println();
-        System.out.println("Ingresa el codigo y al terminar ingresa DONE: ");
         AnalizadorLexico lex = new AnalizadorLexico();
         Analizador analizar = new Analizador(lex);
         analizar.programa(); 
-        System.out.write('\n');
+
+        System.out.println();
+        System.out.println("Código fuente: fuente.txt");
         System.out.println("Código intermedio: intermedio.txt");
-        System.out.println("Código destino: destino.txt");
+        System.out.println("Código destino: destino.txt" + "\n");
     }
 
     static void cleanFile(String dir){
