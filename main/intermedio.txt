@@ -1,0 +1,3 @@
+L1:	t1 = x + y
+	result = t1 + z
+L2:
