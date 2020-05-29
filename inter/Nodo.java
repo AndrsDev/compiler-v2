@@ -30,7 +30,7 @@ public class Nodo {
         return result;
     }
 
-    void obtenReg(String s) {
+    void writeDestino(String s) {
         try {
             String line = "";
             if(s.contains("=")){
@@ -49,8 +49,18 @@ public class Nodo {
                 line+= s;
             }
 
-            FileWriter fw = new FileWriter("./main/output.txt", true);
+            FileWriter fw = new FileWriter("./main/destino.txt", true);
             fw.write(line + '\n');
+            fw.close();
+        } catch (Exception e) {
+            //Didn't write to file
+        }
+    }
+
+    void writeIntermedio(String s) {
+        try {
+            FileWriter fw = new FileWriter("./main/intermedio.txt", true);
+            fw.write(s);
             fw.close();
         } catch (Exception e) {
             //Didn't write to file
@@ -62,11 +72,11 @@ public class Nodo {
     }
 
     public void emitirEtiqueta(int i) {
-        System.out.print("L" + i + ":");
+        writeIntermedio("L" + i + ":");
     }
 
     public void emitir(String s) {
-        obtenReg(s);
-        System.out.println("\t" + s);
+        writeIntermedio("\t" + s + "\n");
+        writeDestino(s);
     }
 }
